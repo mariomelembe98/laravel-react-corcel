@@ -1,0 +1,65 @@
+*** Begin Patch
+*** Update File: resources/js/pages/Posts/Index.tsx
+@@
+-                    {posts.data.map((post) => (
++                    {posts.data.map((post) => (
+                         <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                             {post.thumbnail && (
+                                 <img
+                                     src={post.thumbnail}
+                                     alt={post.title}
+                                     className="w-full h-48 object-cover"
+                                 />
+                             )}
+                             <div className="p-6">
+                                 <h2 className="text-xl font-semibold mb-2">
+                                     <Link
+-                                        href={`/posts/${post.id}`}
++                                        href={`/posts/${encodeURIComponent(post.slug ?? post.id)}`}
+                                         className="hover:text-blue-600"
+                                     >
+                                         {post.title}
+                                     </Link>
+@@
+-                            {posts.links.map((link, index) => (
+-                                <Link
+-                                    key={index}
+-                                    href={link.url || '#'}
+-                                    className={`px-4 py-2 rounded ${
+-                                        link.active
+-                                            ? 'bg-blue-600 text-white'
+-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+-                                    } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+-                                    dangerouslySetInnerHTML={{ __html: link.label }}
+-                                />
+-                            ))}
++                            {posts.links.map((link, index) => {
++                                const baseClasses = `px-4 py-2 rounded ${
++                                    link.active
++                                        ? 'bg-blue-600 text-white'
++                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
++                                }`
++
++                                if (!link.url) {
++                                    return (
++                                        <span
++                                            key={index}
++                                            className={`${baseClasses} opacity-50 cursor-not-allowed`}
++                                            dangerouslySetInnerHTML={{ __html: link.label }}
++                                        />
++                                    )
++                                }
++
++                                return (
++                                    <Link
++                                        key={index}
++                                        href={link.url}
++                                        className={baseClasses}
++                                        dangerouslySetInnerHTML={{ __html: link.label }}
++                                    />
++                                )
++                            })}
+                         </div>
+                     )}
+                 </div>
+*** End Patch
