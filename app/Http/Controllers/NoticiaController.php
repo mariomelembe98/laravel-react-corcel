@@ -234,6 +234,32 @@ class NoticiaController extends Controller
         ]);
     }
 
+    /** Retorna sugestoes rapidas de posts para a busca inline */
+    public function searchSuggestions(Request $request)
+    {
+        $q = trim((string) $request->get('q', ''));
+        $limit = min(max((int) $request->get('limit', 5), 1), 10);
+
+        if ($q === '') {
+            return response()->json(['posts' => []]);
+        }
+
+        $posts = Noticia::published()
+            ->where(function ($query) use ($q) {
+                $like = '%' . $q . '%';
+
+                $query->where('post_title', 'like', $like)
+                    ->orWhere('post_content', 'like', $like);
+            })
+            ->orderByDesc('post_date')
+            ->take($limit)
+            ->get()
+            ->map(fn ($post) => $this->transformPost($post))
+            ->values()
+            ->all();
+
+        return response()->json(['posts' => $posts]);
+    }
     /** Preview JSON para dropdown (ate 5 posts) */
     public function categoryPreview(string $slug)
     {
@@ -286,3 +312,4 @@ class NoticiaController extends Controller
             ->all();
     }
 }
+

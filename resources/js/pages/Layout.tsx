@@ -35,7 +35,11 @@ export default function Layout({ children }: LayoutProps) {
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [isScrolled, setScrolled] = useState(false);
+    const [searchSuggestions, setSearchSuggestions] = useState<PostPreview[]>([]);
+    const [isFetchingSuggestions, setFetchingSuggestions] = useState(false);
     const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const suggestionsTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const suggestionsAbort = useRef<AbortController | null>(null);
 
     useEffect(
         () => () => {
@@ -70,6 +74,61 @@ export default function Layout({ children }: LayoutProps) {
             window.removeEventListener('scroll', handleScroll);
         };
     }, []);
+
+    useEffect(() => {
+        const trimmed = query.trim();
+
+        if (suggestionsTimeout.current) {
+            clearTimeout(suggestionsTimeout.current);
+        }
+
+        if (trimmed.length < 2) {
+            if (suggestionsAbort.current) {
+                suggestionsAbort.current.abort();
+                suggestionsAbort.current = null;
+            }
+            setSearchSuggestions([]);
+            setFetchingSuggestions(false);
+            return;
+        }
+
+        suggestionsTimeout.current = window.setTimeout(() => {
+            if (suggestionsAbort.current) {
+                suggestionsAbort.current.abort();
+            }
+
+            const controller = new AbortController();
+            suggestionsAbort.current = controller;
+            setFetchingSuggestions(true);
+
+            fetch(`/api/posts/suggestions?q=${encodeURIComponent(trimmed)}&limit=5`, { signal: controller.signal })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load suggestions');
+                    }
+                    return response.json() as Promise<{ posts?: PostPreview[] }>;
+                })
+                .then((payload: { posts?: PostPreview[] }) => {
+                    setSearchSuggestions(payload.posts ?? []);
+                })
+                .catch((error) => {
+                    if ((error as Error).name !== 'AbortError') {
+                        setSearchSuggestions([]);
+                    }
+                })
+                .finally(() => {
+                    setFetchingSuggestions(false);
+                    suggestionsAbort.current = null;
+                });
+        }, 250);
+
+        return () => {
+            if (suggestionsTimeout.current) {
+                clearTimeout(suggestionsTimeout.current);
+                suggestionsTimeout.current = null;
+            }
+        };
+    }, [query]);
 
     const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -197,32 +256,83 @@ export default function Layout({ children }: LayoutProps) {
     };
 
 
-    const SearchForm = ({
-        className,
-        autoFocus,
-        inputClassName,
-    }: {
-        className?: string;
-        autoFocus?: boolean;
-        inputClassName?: string;
-    }) => (
-        <form onSubmit={handleSearchSubmit} className={className ?? 'relative'}>
-            <input
-                autoFocus={autoFocus}
-                type="search"
-                placeholder="Pesquisar posts..."
-                className={`w-full rounded-full bg-gray-800/70 px-4 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none transition focus:bg-gray-800 focus:ring-2 focus:ring-blue-500 ${inputClassName ?? ''}`}
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                aria-label="Pesquisar posts"
-            />
-        </form>
-    );
+    const SearchForm = (
+        {
+            className,
+            autoFocus,
+            inputClassName,
+        }: {
+            className?: string;
+            autoFocus?: boolean;
+            inputClassName?: string;
+        }
+    ) => {
+        const hasQuery = query.trim().length > 0;
+        const hasSuggestions = searchSuggestions.length > 0;
+        const inputClasses = [
+            'w-full rounded-full bg-gray-800/70 px-4 py-2 text-sm text-gray-100 placeholder-gray-400 outline-none transition focus:bg-gray-800 focus:ring-2 focus:ring-blue-500',
+            inputClassName ?? '',
+        ]
+            .join(' ')
+            .trim();
+
+        return (
+            <form onSubmit={handleSearchSubmit} className={className ?? 'relative'}>
+                <div className="relative">
+                    <input
+                        autoFocus={autoFocus}
+                        type="search"
+                        placeholder="Pesquisar posts..."
+                        className={inputClasses}
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        aria-label="Pesquisar posts"
+                    />
+
+                    {hasQuery && (
+                        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-gray-700/60 bg-gray-900/95 text-sm text-gray-200 shadow-2xl shadow-black/30 backdrop-blur">
+                            <p className="border-b border-gray-700 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                {isFetchingSuggestions ? 'Buscando sugestoes...' : 'Sugestoes rapidas'}
+                            </p>
+                            <ul className="max-h-80 divide-y divide-gray-800/80 overflow-y-auto">
+                                {isFetchingSuggestions ? (
+                                    <li className="px-4 py-3 text-xs text-gray-500">Carregando resultados...</li>
+                                ) : hasSuggestions ? (
+                                    searchSuggestions.map((post) => {
+                                        const suggestionHref = post.slug ? '/posts/' + post.slug : '/posts/' + post.id;
+                                        const meta = post.date ? (post.author ? post.date + ' - ' + post.author : post.date) : null;
+
+                                        return (
+                                            <li key={post.id}>
+                                                <Link href={suggestionHref} className="flex items-center gap-3 px-4 py-3 text-gray-300 transition hover:bg-gray-800/80 hover:text-white">
+                                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600/20 text-blue-300">
+                                                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                                                        </svg>
+                                                    </span>
+                                                    <div className="flex flex-col">
+                                                        <span className="line-clamp-1 text-sm font-semibold text-gray-100">{post.title}</span>
+                                                        {meta && <span className="text-xs text-gray-500">{meta}</span>}
+                                                    </div>
+                                                </Link>
+                                            </li>
+                                        );
+                                    })
+                                ) : (
+                                    <li className="px-4 py-3 text-xs text-gray-500">Nenhuma sugestao encontrada.</li>
+                                )}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </form>
+        );
+    };
 
     return (
         <div className="flex min-h-screen flex-col bg-gray-900 text-gray-100">
 
-            <header className="relative z-40">
+            <header className="sticky top-0 z-40">
                 <div className="border-b border-gray-800 bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-900/80">
                     <div className="container mx-auto flex items-center gap-3 px-4 py-6">
                         <div className="flex items-center md:flex-1">
@@ -237,7 +347,7 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 md:flex-1">
+                        <div className="flex flex-1 items-center justify-end gap-2 md:justify-end md:gap-3">
                             <button
                                 type="button"
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-800 bg-gray-900 text-gray-200 transition hover:bg-gray-800 md:hidden"
@@ -385,4 +495,14 @@ export default function Layout({ children }: LayoutProps) {
         </div>
     );
 }
+
+
+
+
+
+
+
+
+
+
 
