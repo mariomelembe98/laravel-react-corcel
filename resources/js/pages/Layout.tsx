@@ -347,7 +347,15 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                         </div>
 
-                        <div className="flex flex-1 items-center justify-end gap-2 md:justify-end md:gap-3">
+                        <div className="flex flex-1 items-center justify-end gap-2 md:flex-none md:gap-6">
+                            <div className="hidden items-center gap-6 md:flex">
+                                <Link href="/sobre-nos" className="text-sm font-medium uppercase tracking-wide transition hover:text-white">
+                                    Sobre Nos
+                                </Link>
+                                <Link href="/contacto" className="text-sm font-medium uppercase tracking-wide transition hover:text-white">
+                                    Contacto
+                                </Link>
+                            </div>
                             <button
                                 type="button"
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-800 bg-gray-900 text-gray-200 transition hover:bg-gray-800 md:hidden"
@@ -423,17 +431,6 @@ export default function Layout({ children }: LayoutProps) {
                                 <li className="text-sm text-gray-400">Nenhuma categoria cadastrada.</li>
                             )}
 
-                            {/* Links institucionais */}
-                            <li>
-                                <Link href="/sobre-nos" className="text-sm font-medium uppercase tracking-wide transition hover:text-white">
-                                    Sobre Nós
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/contacto" className="text-sm font-medium uppercase tracking-wide transition hover:text-white">
-                                    Contacto
-                                </Link>
-                            </li>
                         </ul>
                         {isScrolled && (
                             <div className="ml-6 hidden w-full max-w-xs md:block">
@@ -441,7 +438,6 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                         )}
                     </div>
-
                     {/* Mobile navigation */}
                     {isMobileMenuOpen && (
                         <div className="absolute inset-x-0 top-full z-30 md:hidden">
@@ -482,7 +478,7 @@ export default function Layout({ children }: LayoutProps) {
                                             className="flex items-center justify-between rounded-xl bg-gray-800/40 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-gray-100 transition hover:bg-gray-800"
                                             onClick={closeMobileMenu}
                                         >
-                                            <span>Sobre Nós</span>
+                                            <span>Sobre Nos</span>
                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                             </svg>
