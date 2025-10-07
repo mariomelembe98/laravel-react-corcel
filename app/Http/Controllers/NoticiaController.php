@@ -155,7 +155,7 @@ class NoticiaController extends Controller
 
     private function processContent($content)
     {
-        $siteUrl = config('app.wp_url', 'http://noticias.co.mz');
+        $siteUrl = config('app.wp_url', 'http://revistatempo.co.mz');
 
         return preg_replace(
             '/(src|href)=["\']\/([^"\']*)["\']/',

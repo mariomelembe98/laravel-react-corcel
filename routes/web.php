@@ -9,7 +9,7 @@ use Inertia\Inertia;
 //    return Inertia::render('welcome');
 //})->name('home');
 
-Route::get('/', [NoticiaController::class, 'index']);
+Route::get('/', [NoticiaController::class, 'index'])->name('home');
 // Pagina de pesquisa precisa vir antes da rota dinamica de posts
 Route::get('/posts/search', [NoticiaController::class, 'search'])->name('posts.search');
 
@@ -36,7 +36,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
+// Paginas institucionais
+Route::get('/sobre-nos', function () {
+    return Inertia::render('about');
+})->name('about');
+
+Route::get('/contacto', function () {
+    return Inertia::render('contact');
+})->name('contact');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
-
-

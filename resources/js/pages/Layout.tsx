@@ -422,6 +422,18 @@ export default function Layout({ children }: LayoutProps) {
                             ) : (
                                 <li className="text-sm text-gray-400">Nenhuma categoria cadastrada.</li>
                             )}
+
+                            {/* Links institucionais */}
+                            <li>
+                                <Link href="/sobre-nos" className="text-sm font-medium uppercase tracking-wide transition hover:text-white">
+                                    Sobre Nós
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/contacto" className="text-sm font-medium uppercase tracking-wide transition hover:text-white">
+                                    Contacto
+                                </Link>
+                            </li>
                         </ul>
                         {isScrolled && (
                             <div className="ml-6 hidden w-full max-w-xs md:block">
@@ -462,6 +474,32 @@ export default function Layout({ children }: LayoutProps) {
                                     ) : (
                                         <li className="text-sm text-gray-400">Nenhuma categoria cadastrada.</li>
                                     )}
+
+                                    {/* Links institucionais no mobile */}
+                                    <li>
+                                        <Link
+                                            href="/sobre-nos"
+                                            className="flex items-center justify-between rounded-xl bg-gray-800/40 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-gray-100 transition hover:bg-gray-800"
+                                            onClick={closeMobileMenu}
+                                        >
+                                            <span>Sobre Nós</span>
+                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            href="/contacto"
+                                            className="flex items-center justify-between rounded-xl bg-gray-800/40 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-gray-100 transition hover:bg-gray-800"
+                                            onClick={closeMobileMenu}
+                                        >
+                                            <span>Contacto</span>
+                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </Link>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -495,7 +533,6 @@ export default function Layout({ children }: LayoutProps) {
         </div>
     );
 }
-
 
 
 
